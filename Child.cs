@@ -7,8 +7,6 @@ namespace TupleAtATime
     {
         private readonly BasicOperator _input;
         private readonly string _tagName;
-        private List<XmlNode> _elements;
-        private int _elementPosition;
         private int _childElementPosition;
 
         public Child(BasicOperator input, string tagName)
@@ -28,35 +26,28 @@ namespace TupleAtATime
             {
                 // we open the input operator
                 IsOpen = true;
-                _elementPosition = 0;
                 _childElementPosition = 0;
 
-                // and read all the input nodes (blocking implementation)
-                _elements = new List<XmlNode>();
-                while (_input.MoveNext())
-                {
-                    _elements.Add(_input.Current);
-                }
             }
 
             // for each input element
-            while (_elementPosition < _elements.Count)
+            while (_input.MoveNext())
             {
+                XmlNode xn = _input.Current;
                 // for each child node
-                while (_childElementPosition < _elements[_elementPosition].ChildNodes.Count)
+                while (_childElementPosition < xn.ChildNodes.Count)
                 {
                     // check whether the child node has a correct tag name or not
-                    if (_elements[_elementPosition].ChildNodes[_childElementPosition].Name == _tagName)
+                    if (xn.ChildNodes[_childElementPosition].Name == _tagName)
                     {
                         // if yes, set it as a current cursor position and return true
-                        Current = _elements[_elementPosition].ChildNodes[_childElementPosition++];
+                        Current = xn.ChildNodes[_childElementPosition++];
                         return true;
                     }
 
                     _childElementPosition++;
                 }
 
-                _elementPosition++;
                 _childElementPosition = 0;
             }
 

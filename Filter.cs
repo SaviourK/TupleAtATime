@@ -10,9 +10,6 @@ namespace TupleAtATime
         private readonly BasicOperator _input;
         private readonly BasicOperator _filter;
 
-        private List<XmlNode> _elements;
-        private int _elementPosition;
-
         public Filter(BasicOperator input, BasicOperator filter)
         {
             this._input = input;
@@ -30,29 +27,21 @@ namespace TupleAtATime
             {
                 // we open the input operator
                 IsOpen = true;
-                _elementPosition = 0;
 
-                // and read all the input nodes
-                _elements = new List<XmlNode>();
-                while (_input.MoveNext())
-                {
-                    _elements.Add(_input.Current);
-                }
             }
 
-            while (_elementPosition < _elements.Count)
+            while (_input.MoveNext())
             {
+                XmlNode xn = _input.Current;
                 // searching for element that satisfy the filter condition
-                _filter.SetContext(_elements[_elementPosition]);
+                _filter.SetContext(xn);
                 if (_filter.MoveNext())
                 {
                     // if the filter condition pass for the current element
-                    Current = _elements[_elementPosition];
+                    Current = xn;
                     _filter.Reset();
-                    _elementPosition++;
                     return true;
                 }
-                _elementPosition++;
             }
 
             IsOpen = false;
