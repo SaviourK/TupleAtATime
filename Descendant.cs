@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.Xml;
 
 namespace TupleAtATime
@@ -9,6 +7,9 @@ namespace TupleAtATime
     {
         private readonly BasicOperator _input;
         private readonly string _tagName;
+        private List<XmlNode> _elements;
+        private int _elementPosition;
+        private int _childElementPosition;
 
         public Descendant(BasicOperator input, string tagName)
         {
@@ -25,17 +26,36 @@ namespace TupleAtATime
         {
             if (!IsOpen)
             {
+                // we open the input operator
                 IsOpen = true;
+                _elementPosition = 0;
+                _childElementPosition = 0;
+
+                // and read all the input nodes (blocking implementation)
+                _elements = new List<XmlNode>();
+                while (_input.MoveNext())
+                {
+                    _elements.Add(_input.Current);
+                }
             }
 
             // for each input element
-            while (_input.MoveNext())
+            while (_elementPosition < _elements.Count)
             {
-                XmlNode xn = _input.Current;
-                if(MoveNextRecurse(xn))
+                // for each child node
+                while (_childElementPosition < _elements[_elementPosition].ChildNodes.Count)
                 {
-                    return true;
+                    if (MoveNextRecurse(_elements[_elementPosition].ChildNodes[_childElementPosition])) {
+                        // if yes, set it as a current cursor position and return true
+                        Current = _elements[_elementPosition].ChildNodes[_childElementPosition++];
+                        return true;
+                    }
+
+                    _childElementPosition++;
                 }
+
+                _elementPosition++;
+                _childElementPosition = 0;
             }
 
             IsOpen = false;
@@ -53,7 +73,7 @@ namespace TupleAtATime
             }
             while (_childChildElementPosition < child.ChildNodes.Count)
             {
-                if(MoveNextRecurse(child.ChildNodes[_childChildElementPosition++]))
+                if (MoveNextRecurse(child.ChildNodes[_childChildElementPosition++]))
                 {
                     return true;
                 }
