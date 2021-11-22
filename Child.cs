@@ -27,32 +27,35 @@ namespace TupleAtATime
                 // we open the input operator
                 IsOpen = true;
                 _childElementPosition = 0;
-
             }
 
-            // for each input element
-            while (_input.MoveNext())
+            while(_input.MoveNext()) 
             {
-                XmlNode xn = _input.Current;
+
+                XmlNode element = _input.Current;
                 // for each child node
-                while (_childElementPosition < xn.ChildNodes.Count)
+                while (_childElementPosition < element.ChildNodes.Count)
                 {
                     // check whether the child node has a correct tag name or not
-                    if (xn.ChildNodes[_childElementPosition].Name == _tagName)
+                    if (element.ChildNodes[_childElementPosition].Name == _tagName)
                     {
                         // if yes, set it as a current cursor position and return true
-                        Current = xn.ChildNodes[_childElementPosition++];
+                        _input.Reset();
+                        Current = element.ChildNodes[_childElementPosition++];
                         return true;
                     }
 
                     _childElementPosition++;
                 }
 
+                
                 _childElementPosition = 0;
-            }
 
+
+            }
             IsOpen = false;
             return false;
+
         }
 
         public override void Reset()
@@ -60,7 +63,7 @@ namespace TupleAtATime
             _input.Reset();
             IsOpen = false;
         }
-        
+
         public override string ToString()
         {
             return _input.ToString() + "/" + _tagName;
