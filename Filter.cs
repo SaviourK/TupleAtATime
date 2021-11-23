@@ -5,10 +5,12 @@ using System.Xml;
 
 namespace TupleAtATime
 {
-    class Filter: BasicOperator
+    class Filter : BasicOperator
     {
         private readonly BasicOperator _input;
         private readonly BasicOperator _filter;
+
+        private int _elementPosition;
 
         public Filter(BasicOperator input, BasicOperator filter)
         {
@@ -27,21 +29,30 @@ namespace TupleAtATime
             {
                 // we open the input operator
                 IsOpen = true;
+                _elementPosition = 0;
 
             }
 
             while (_input.MoveNext())
             {
                 XmlNode xn = _input.Current;
-                // searching for element that satisfy the filter condition
-                _filter.SetContext(xn);
-                if (_filter.MoveNext())
+
+                while (_elementPosition < xn.ChildNodes.Count)
                 {
-                    // if the filter condition pass for the current element
-                    Current = xn;
-                    _filter.Reset();
-                    return true;
+                    // searching for element that satisfy the filter condition
+                    _filter.SetContext(xn);
+                    if (_filter.MoveNext())
+                    {
+                        // if the filter condition pass for the current element
+                        Current = xn;
+                        _filter.Reset();
+                        _elementPosition++;
+                        return true;
+                    }
+                    _elementPosition++;
                 }
+
+
             }
 
             IsOpen = false;
