@@ -5,15 +5,19 @@ using System.Xml;
 
 namespace TupleAtATime
 {
-    class Add : BasicOperator
+    class And : BasicOperator
     {
         private readonly BasicOperator _input;
-        private readonly BasicOperator _filter;
+        private readonly BasicOperator _filter1;
+        private readonly BasicOperator _filter2;
 
-        public Add(BasicOperator input, BasicOperator filter)
+        private int _elementPosition;
+
+        public And(BasicOperator input, BasicOperator filter1, BasicOperator filter2)
         {
             this._input = input;
-            this._filter = filter;
+            this._filter1 = filter1;
+            this._filter2 = filter2;
         }
 
         public override void SetContext(XmlNode context)
@@ -27,21 +31,32 @@ namespace TupleAtATime
             {
                 // we open the input operator
                 IsOpen = true;
+                _elementPosition = 0;
 
             }
 
             while (_input.MoveNext())
             {
                 XmlNode xn = _input.Current;
-                // searching for element that satisfy the filter condition
-                _filter.SetContext(xn);
-                if (_filter.MoveNext())
+
+                while (_elementPosition < xn.ChildNodes.Count)
                 {
-                    // if the filter condition pass for the current element
-                    Current = xn;
-                    _filter.Reset();
-                    return true;
+                    // searching for element that satisfy the filter condition
+                    _filter1.SetContext(xn);
+                    _filter2.SetContext(xn);
+                    if (_filter1.MoveNext() && _filter2.MoveNext())
+                    {
+                        // if the filter condition pass for the current element
+                        Current = xn;
+                        _filter1.Reset();
+                        _filter2.Reset();
+                        _elementPosition++;
+                        return true;
+                    }
+                    _elementPosition++;
                 }
+
+
             }
 
             IsOpen = false;
@@ -51,14 +66,15 @@ namespace TupleAtATime
         public override void Reset()
         {
             _input.Reset();
-            _filter.Reset();
+            _filter1.Reset();
+            _filter2.Reset();
             IsOpen = false;
         }
 
 
         public override string ToString()
         {
-            return _input.ToString() + "[" + _filter.ToString() + "]";
+            return _input.ToString() + "[" + _filter1.ToString() + "|" + _filter2 + "]";
         }
     }
 }
